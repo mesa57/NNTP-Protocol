@@ -188,7 +188,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
 		switch ($_ret) {
 			case -1:
-				return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
 				break;
 			case 0:
 				return (int)$response[0];
@@ -225,7 +225,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
 		switch ($_ret) {
 			case -1:
-				return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
 				break;
 			case 0:
 				return (int)$response[0];
@@ -262,7 +262,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
 		switch ($_ret) {
 			case -1:
-				return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
 				break;
 			case 0:
 				return (int)$response[0];
@@ -518,7 +518,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 		$header .= "\r\n";
 
 		// Actually send the article
-		return $this->cmdPost2([$header, $body]);
+		return $this->cmdPost2(array($header, $body));
 	}
 
 	/**
@@ -552,11 +552,11 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 						2) . ':' . substr($date, 12, 2));
 				break;
 			case 2:
-				return [
+				return array(
 					'y' => substr($date, 0, 4),
 					'm' => substr($date, 4, 2),
 					'd' => substr($date, 6, 2)
-				];
+                );
 				break;
 			default:
 				error();
@@ -773,11 +773,11 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 				}
 
 				// Create and return API v1.0 compliant array
-				$articles = [];
+				$articles = array();
 				foreach ($overview as $article) {
 
 					// Rename 'Number' field into 'number'
-					$article = array_merge(['number' => array_shift($article)], $article);
+					$article = array_merge(array('number' => array_shift($article)), $article);
 
 					// Use 'Message-ID' field as key
 					$articles[$article['Message-ID']] = $article;
@@ -804,7 +804,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 				}
 
 				// Prepend 'Number' field
-				$format = array_merge(['Number' => false], $format);
+				$format = array_merge(array('Number' => false), $format);
 
 				// Cache format
 				$this->_overviewFormatCache = $format;
@@ -882,7 +882,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 		// Force name of first seven fields
 		if ($_forceNames) {
 			array_splice($format, 0, 7);
-			$format = array_merge([
+			$format = array_merge(array(
 				'Subject'    => false,
 				'From'       => false,
 				'Date'       => false,
@@ -890,7 +890,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 				'References' => false,
 				':bytes'     => false,
 				':lines'     => false
-			], $format);
+            ), $format);
 		}
 
 		if ($_full) {
