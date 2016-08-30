@@ -148,20 +148,20 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
             return false;
         }
 
-        switch ($_ret) {
-            case -1:
-                return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
-                break;
-            case 0:
-                return (int)$response[0];
-                break;
-            case 1:
-                return (string)$response[1];
-                break;
-            default:
-                //error(); // ...
-        }
-    }
+		switch ($_ret) {
+			case -1:
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
+				break;
+			case 0:
+				return (int)$response[0];
+				break;
+			case 1:
+				return (string)$response[1];
+				break;
+			default:
+				//error(); // ...
+		}
+	}
 
     /**
      * Select the next article.
@@ -179,20 +179,20 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     {
         $response = $this->cmdNext();
 
-        switch ($_ret) {
-            case -1:
-                return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
-                break;
-            case 0:
-                return (int)$response[0];
-                break;
-            case 1:
-                return (string)$response[1];
-                break;
-            default:
-                //error(); // ...
-        }
-    }
+		switch ($_ret) {
+			case -1:
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
+				break;
+			case 0:
+				return (int)$response[0];
+				break;
+			case 1:
+				return (string)$response[1];
+				break;
+			default:
+				//error(); // ...
+		}
+	}
 
     /**
      * Selects an article by article message-number.
@@ -210,16 +210,16 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
         $response = $this->cmdStat($article);
 
 		switch ($_ret) {
-            case -1:
-				return ['Number' => (int)$response[0], 'Message-ID' => (string)$response[1]];
-                break;
-            case 0:
-                return (int)$response[0];
-                break;
-            case 1:
-                return (string)$response[1];
-                break;
-            default:
+			case -1:
+				return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
+				break;
+			case 0:
+				return (int)$response[0];
+				break;
+			case 1:
+				return (string)$response[1];
+				break;
+			default:
 				//error(); // ...
         }
     }
@@ -431,9 +431,9 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
         }
         $header .= "\r\n";
 
-        // Actually send the article
-		return $this->cmdPost2([$header, $body]);
-    }
+		// Actually send the article
+		return $this->cmdPost2(array($header, $body));
+	}
 
     /**
      * Get the server's internal date (Non-standard)
@@ -451,26 +451,22 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     {
         $date = $this->cmdDate();
 
-        switch ($format) {
-            case 0:
-                return $date;
-                break;
-            case 1:
-                return strtotime(
-                    substr($date, 0, 8) . ' ' .
-                    substr($date, 8, 2) . ':' .
-                    substr($date, 10, 2) . ':' .
-                    substr($date, 12, 2)
+		switch ($format) {
+			case 0:
+				return $date;
+				break;
+			case 1:
+				return strtotime(substr($date, 0, 8) . ' ' . substr($date, 8, 2) . ':' . substr($date, 10,
+						2) . ':' . substr($date, 12, 2));
+				break;
+			case 2:
+				return array(
+					'y' => substr($date, 0, 4),
+					'm' => substr($date, 4, 2),
+					'd' => substr($date, 6, 2)
                 );
-                break;
-            case 2:
-				return [
-                    'y' => substr($date, 0, 4),
-                    'm' => substr($date, 4, 2),
-                    'd' => substr($date, 6, 2)
-				];
-                break;
-            default:
+				break;
+			default:
 				error();
         }
     }
@@ -651,11 +647,12 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                     return $overview;
                 }
 
-                // Create and return API v1.0 compliant array
-				$articles = [];
-                foreach ($overview as $article) {
-                    // Rename 'Number' field into 'number'
-					$article = array_merge(['number' => array_shift($article)], $article);
+				// Create and return API v1.0 compliant array
+				$articles = array();
+				foreach ($overview as $article) {
+
+					// Rename 'Number' field into 'number'
+					$article = array_merge(array('number' => array_shift($article)), $article);
 
                     // Use 'Message-ID' field as key
                     $articles[$article['Message-ID']] = $article;
@@ -680,8 +677,8 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                     return $format;
                 }
 
-                // Prepend 'Number' field
-                $format = array_merge(['Number' => false], $format);
+				// Prepend 'Number' field
+				$format = array_merge(array('Number' => false), $format);
 
                 // Cache format
                 $this->_overviewFormatCache = $format;
@@ -744,19 +741,19 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     {
         $format = $this->cmdListOverviewFmt();
 
-        // Force name of first seven fields
-        if ($_forceNames) {
-            array_splice($format, 0, 7);
-			$format = array_merge([
-                'Subject' => false,
-                'From' => false,
-                'Date' => false,
-                'Message-ID' => false,
-                'References' => false,
-                ':bytes' => false,
-                ':lines' => false
-			], $format);
-        }
+		// Force name of first seven fields
+		if ($_forceNames) {
+			array_splice($format, 0, 7);
+			$format = array_merge(array(
+				'Subject'    => false,
+				'From'       => false,
+				'Date'       => false,
+				'Message-ID' => false,
+				'References' => false,
+				':bytes'     => false,
+				':lines'     => false
+            ), $format);
+		}
 
         if ($_full) {
             return $format;

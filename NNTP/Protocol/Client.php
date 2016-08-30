@@ -110,8 +110,8 @@ class Net_NNTP_Protocol_Client
          */
         if (preg_match_all('/\r?\n/', $cmd, $matches, PREG_PATTERN_ORDER)) {
             foreach ($matches[0] as $key => $match) {
-                $this->_logger->debug("Illegal character in command: " . htmlentities(str_replace(["\r", "\n"],
-                        ["'Carriage Return'", "'New Line'"], $match)));
+                $this->_logger->debug("Illegal character in command: " . htmlentities(str_replace(array("\r", "\n"),
+                        array("'Carriage Return'", "'New Line'"), $match)));
             }
             $this->throwError("Illegal character(s) in NNTP command!");
         }
@@ -162,10 +162,10 @@ class Net_NNTP_Protocol_Client
         // Trim the start of the response in case of misplaced whitespace (should not be needed).
         $response = ltrim($response);
 
-        $this->_currentStatusResponse = [
+        $this->_currentStatusResponse = array(
             (int)substr($response, 0, 3),
             (string)rtrim(substr($response, 4))
-        ];
+        );
 
         //
         return $this->_currentStatusResponse[0];
@@ -179,7 +179,7 @@ class Net_NNTP_Protocol_Client
      */
     private function _getTextResponse()
     {
-        $data = [];
+        $data = array();
         $line = '';
 
         //
@@ -264,7 +264,7 @@ class Net_NNTP_Protocol_Client
      */
     private function _getCompressedResponse()
     {
-        $data = [];
+        $data = array();
 
         /**
          * We can have two kinds of compressed support:
@@ -673,12 +673,12 @@ class Net_NNTP_Protocol_Client
                     $this->_logger->info('Group selected: ' . $response_arr[3]);
                 }
 
-                return [
+                return array(
                     'group' => $response_arr[3],
                     'first' => $response_arr[1],
                     'last'  => $response_arr[2],
                     'count' => $response_arr[0]
-                ];
+                );
                 break;
             // 411, RFC977: 'no such news group'.
             case NET_NNTP_PROTOCOL_RESPONSECODE_NO_SUCH_GROUP:
@@ -717,22 +717,22 @@ class Net_NNTP_Protocol_Client
 
                 // If server does not return group summary in status response, return null'ed array.
                 if (!is_numeric($response_arr[0]) || !is_numeric($response_arr[1]) || !is_numeric($response_arr[2]) || empty($response_arr[3])) {
-                    return [
+                    return array(
                         'group'    => null,
                         'first'    => null,
                         'last'     => null,
                         'count'    => null,
                         'articles' => $articles
-                    ];
+                    );
                 }
 
-                return [
+                return array(
                     'group'    => $response_arr[3],
                     'first'    => $response_arr[1],
                     'last'     => $response_arr[2],
                     'count'    => $response_arr[0],
                     'articles' => $articles
-                ];
+                );
                 break;
             // 412, RFC2980: 'Not currently in newsgroup'.
             case NET_NNTP_PROTOCOL_RESPONSECODE_NO_GROUP_SELECTED:
@@ -765,7 +765,7 @@ class Net_NNTP_Protocol_Client
                     $this->_logger->info('Selected previous article: ' . $response_arr[0] . ' - ' . $response_arr[1]);
                 }
 
-                return [$response_arr[0], (string)$response_arr[1]];
+                return array($response_arr[0], (string)$response_arr[1]);
                 break;
             // 412, RFC977: 'no newsgroup selected'.
             case NET_NNTP_PROTOCOL_RESPONSECODE_NO_GROUP_SELECTED:
@@ -803,7 +803,7 @@ class Net_NNTP_Protocol_Client
                     $this->_logger->info('Selected previous article: ' . $response_arr[0] . ' - ' . $response_arr[1]);
                 }
 
-                return [$response_arr[0], (string)$response_arr[1]];
+                return array($response_arr[0], (string)$response_arr[1]);
                 break;
             // 412, RFC977: 'no newsgroup selected'.
             case NET_NNTP_PROTOCOL_RESPONSECODE_NO_GROUP_SELECTED:
@@ -1000,7 +1000,7 @@ class Net_NNTP_Protocol_Client
                     $this->_logger->info('Selected article: ' . $response_arr[0] . ' - ' . $response_arr[1]);
                 }
 
-                return [$response_arr[0], (string)$response_arr[1]];
+                return array($response_arr[0], (string)$response_arr[1]);
                 break;
             // 412, RFC977: 'no newsgroup has been selected' (actually not documented, but copied from the ARTICLE command).
             case NET_NNTP_PROTOCOL_RESPONSECODE_NO_GROUP_SELECTED:
@@ -1197,16 +1197,16 @@ class Net_NNTP_Protocol_Client
             case NET_NNTP_PROTOCOL_RESPONSECODE_NEW_GROUPS_FOLLOW:
                 $data = $this->_getTextResponse();
 
-                $groups = [];
+                $groups = array();
                 foreach ($data as $line) {
                     $arr = explode(' ', trim($line));
 
-                    $group = [
+                    $group = array(
                         'group'   => $arr[0],
                         'last'    => $arr[1],
                         'first'   => $arr[2],
                         'posting' => $arr[3]
-                    ];
+                    );
 
                     $groups[$group['group']] = $group;
                 }
@@ -1248,7 +1248,7 @@ class Net_NNTP_Protocol_Client
         switch ($response) {
             // 230, RFC977: 'list of new articles by message-id follows'.
             case NET_NNTP_PROTOCOL_RESPONSECODE_NEW_ARTICLES_FOLLOW:
-                $messages = [];
+                $messages = array();
                 foreach ($this->_getTextResponse() as $line) {
                     $messages[] = $line;
                 }
@@ -1273,16 +1273,16 @@ class Net_NNTP_Protocol_Client
             // 215, RFC977: 'list of newsgroups follows'
             case NET_NNTP_PROTOCOL_RESPONSECODE_GROUPS_FOLLOW:
                 $data   = $this->_getTextResponse();
-                $groups = [];
+                $groups = array();
                 foreach ($data as $line) {
                     $arr = explode(' ', trim($line));
 
-                    $group = [
+                    $group = array(
                         'group'   => $arr[0],
                         'last'    => $arr[1],
                         'first'   => $arr[2],
                         'posting' => $arr[3]
-                    ];
+                    );
 
                     $groups[$group['group']] = $group;
                 }
@@ -1315,16 +1315,16 @@ class Net_NNTP_Protocol_Client
             case NET_NNTP_PROTOCOL_RESPONSECODE_GROUPS_FOLLOW: // 215, RFC977: 'list of newsgroups follows'
                 $data = $this->_getTextResponse();
 
-                $groups = [];
+                $groups = array();
                 foreach ($data as $line) {
                     $arr = explode(' ', trim($line));
 
-                    $group = [
+                    $group = array(
                         'group'   => $arr[0],
                         'last'    => $arr[1],
                         'first'   => $arr[2],
                         'posting' => $arr[3]
-                    ];
+                    );
 
                     $groups[$group['group']] = $group;
                 }
@@ -1362,7 +1362,7 @@ class Net_NNTP_Protocol_Client
             case NET_NNTP_PROTOCOL_RESPONSECODE_GROUPS_FOLLOW:
                 $data = $this->_getTextResponse();
 
-                $groups = [];
+                $groups = array();
 
                 foreach ($data as $line) {
                     if (preg_match("/^(\S+)\s+(.*)$/", ltrim($line), $matches)) {
@@ -1507,8 +1507,8 @@ class Net_NNTP_Protocol_Client
      */
     private function yencDecode($string, $destination = "")
     {
-        $encoded = [];
-        $header  = [];
+        $encoded = array();
+        $header  = array();
         $decoded = '';
 
         // Extract the yEnc string itself.
@@ -1612,7 +1612,7 @@ class Net_NNTP_Protocol_Client
             case NET_NNTP_PROTOCOL_RESPONSECODE_GROUPS_FOLLOW:
                 $data = $this->_getTextResponse();
 
-                $format = [];
+                $format = array();
 
                 foreach ($data as $line) {
                     // Check if postfixed by ':full' (case-insensitive).
@@ -1665,7 +1665,7 @@ class Net_NNTP_Protocol_Client
             case 221:
                 $data = $this->_getTextResponse();
 
-                $return = [];
+                $return = array();
                 foreach ($data as $line) {
                     $line             = explode(' ', trim($line), 2);
                     $return[$line[0]] = $line[1];
@@ -1711,7 +1711,7 @@ class Net_NNTP_Protocol_Client
             case 282:
                 $data = $this->_getTextResponse();
 
-                $groups = [];
+                $groups = array();
 
                 foreach ($data as $line) {
                     preg_match("/^(.*?)\s(.*?$)/", trim($line), $matches);
@@ -1757,7 +1757,7 @@ class Net_NNTP_Protocol_Client
             case NET_NNTP_PROTOCOL_RESPONSECODE_OVERVIEW_FOLLOWS:
                 $data = $this->_getTextResponse();
 
-                $return = [];
+                $return = array();
                 foreach ($data as $line) {
                     $line             = explode(' ', trim($line), 2);
                     $return[$line[0]] = $line[1];
@@ -1802,7 +1802,7 @@ class Net_NNTP_Protocol_Client
             case 221:
                 $data = $this->_getTextResponse();
 
-                $return = [];
+                $return = array();
                 foreach ($data as $line) {
                     $line             = explode(' ', trim($line), 2);
                     $return[$line[0]] = $line[1];
