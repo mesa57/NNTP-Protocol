@@ -21,6 +21,9 @@
   "autoload": {
     "classmap": [
       "./"
+    ],
+    "files": [
+      "NNTP/Protocol/Responsecode.php"
     ]
   },
   "license": "MIT",
