@@ -24,8 +24,5 @@
     ]
   },
   "license": "MIT",
-  "type": "library",
-  "require-dev": {
-    "phpunit/phpunit": "*"
-  }
+  "type": "library"
 }
