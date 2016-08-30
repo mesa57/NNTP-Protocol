@@ -1,6 +1,8 @@
 {
   "name": "gdwebs/nntp",
   "description": "A NNTP Package",
+  "type": "library",
+  "license": "MIT",
   "authors": [
     {
       "name": "Heino H. Gehlsen",
@@ -20,12 +22,10 @@
   ],
   "autoload": {
     "classmap": [
-      "./"
+      "src/"
     ],
     "files": [
-      "NNTP/Protocol/Responsecode.php"
+      "src/Protocol/Responsecode.php"
     ]
-  },
-  "license": "MIT",
-  "type": "library"
+  }
 }
