@@ -27,7 +27,7 @@
       "src/"
     ],
     "files": [
-      "src/Responsecode.php"
+      "src/ResponseCode.php"
     ]
   }
 }
