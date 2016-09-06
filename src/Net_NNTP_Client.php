@@ -25,17 +25,6 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     private $supportXzver = false;
 
     /**
-     * Deprecated alias for disconnect().
-     *
-     * @return bool
-     * @deprecated Use disconnect instead.
-     */
-    public function quit()
-    {
-        return $this->disconnect();
-    }
-
-    /**
      * Authenticate. (Non-standard)
      * This method uses non-standard commands, which is not part
      * of the original RFC977, but has been formalized in RFC2890.
@@ -49,7 +38,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     public function authenticate($user, $pass)
     {
         // Username is a must...
-        if ($user == null) {
+        if (empty($user) || !is_string($user)) {
             throw new NNTPException('No username supplied');
         }
 

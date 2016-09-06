@@ -23,7 +23,7 @@ class Net_NNTP_Protocol_Client
     private $socket = null;
 
     /**
-     * Contains the last recieved status response code and text.
+     * Contains the last received status response code and text.
      *
      * @var array
      */
