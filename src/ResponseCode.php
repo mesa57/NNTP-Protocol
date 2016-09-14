@@ -251,3 +251,106 @@ const NET_NNTP_PROTOCOL_RESPONSECODE_ENCRYPTION_REQUIRED = 483;
  * 'Error in base64-encoding [RFC3548] of an argument' (Draft).
  */
 const NET_NNTP_PROTOCOL_RESPONSECODE_BASE64_ENCODING_ERROR = 504;
+
+$responseCodes = array(
+    NET_NNTP_PROTOCOL_RESPONSECODE_HELP_FOLLOWS             =>
+        'Help text follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_CAPABILITIES_FOLLOW      =>
+        'Capabilities list follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_SERVER_DATE              =>
+        'Server date and time',
+    NET_NNTP_PROTOCOL_RESPONSECODE_READY_POSTING_ALLOWED    =>
+        'Server ready - posting allowed',
+    NET_NNTP_PROTOCOL_RESPONSECODE_READY_POSTING_PROHIBITED =>
+        'Server ready - no posting allowed',
+    NET_NNTP_PROTOCOL_RESPONSECODE_SLAVE_RECOGNIZED         =>
+        'Slave status noted',
+    NET_NNTP_PROTOCOL_RESPONSECODE_DISCONNECTING_REQUESTED  =>
+        'Closing connection - goodbye!',
+    NET_NNTP_PROTOCOL_RESPONSECODE_GROUP_SELECTED           =>
+        'Group selected',
+    NET_NNTP_PROTOCOL_RESPONSECODE_GROUPS_FOLLOW            =>
+        'Information follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_ARTICLE_FOLLOWS          =>
+        'Article retrieved - head and body follow',
+    NET_NNTP_PROTOCOL_RESPONSECODE_HEAD_FOLLOWS             =>
+        'Article retrieved - head follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_BODY_FOLLOWS             =>
+        'Article retrieved - body follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_ARTICLE_SELECTED         =>
+        'Article retrieved - request text separately',
+    NET_NNTP_PROTOCOL_RESPONSECODE_OVERVIEW_FOLLOWS         =>
+        'Overview information follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_HEADERS_FOLLOW           =>
+        'Headers follow',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NEW_ARTICLES_FOLLOW      =>
+        'List of new articles follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NEW_GROUPS_FOLLOW        =>
+        'List of new newsgroups follows',
+    NET_NNTP_PROTOCOL_RESPONSECODE_TRANSFER_SUCCESS         =>
+        'Article transferred ok',
+    NET_NNTP_PROTOCOL_RESPONSECODE_POSTING_SUCCESS          =>
+        'Article posted ok',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHORIZATION_ACCEPTED   =>
+        'Authorization accepted',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHENTICATION_ACCEPTED  =>
+        'Authentication accepted',
+    NET_NNTP_PROTOCOL_RESPONSECODE_TRANSFER_SEND            =>
+        'Send article to be transferred',
+    NET_NNTP_PROTOCOL_RESPONSECODE_POSTING_SEND             =>
+        'Send article to be posted',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHORIZATION_CONTINUE   =>
+        'Continue with authorization sequence',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHENTICATION_CONTINUE  =>
+        'More authentication information required',
+    NET_NNTP_PROTOCOL_RESPONSECODE_DISCONNECTING_FORCED     =>
+        'Service discontinued',
+    NET_NNTP_PROTOCOL_RESPONSECODE_WRONG_MODE               =>
+        'The server is in the wrong mode; the indicated capability should be used to change the mode',
+    NET_NNTP_PROTOCOL_RESPONSECODE_INTERNAL_FAULT           =>
+        'Internal fault or problem preventing action being taken',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_SUCH_GROUP            =>
+        'No such news group',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_GROUP_SELECTED        =>
+        'No current article has been selected',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_ARTICLE_SELECTED      =>
+        'No current article has been selected',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_NEXT_ARTICLE          =>
+        'No next article in this group',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_PREVIOUS_ARTICLE      =>
+        'No previous article in this group',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_SUCH_ARTICLE_NUMBER   =>
+        'No such article number in this group',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NO_SUCH_ARTICLE_ID       =>
+        'No such article found',
+    NET_NNTP_PROTOCOL_RESPONSECODE_TRANSFER_UNWANTED        =>
+        'Article not wanted - do not send it',
+    NET_NNTP_PROTOCOL_RESPONSECODE_TRANSFER_FAILURE         =>
+        'Transfer failed - try again later',
+    NET_NNTP_PROTOCOL_RESPONSECODE_TRANSFER_REJECTED        =>
+        'Article rejected - do not try again',
+    NET_NNTP_PROTOCOL_RESPONSECODE_POSTING_PROHIBITED       =>
+        'Posting not allowed',
+    NET_NNTP_PROTOCOL_RESPONSECODE_POSTING_FAILURE          =>
+        'Posting failed',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHORIZATION_REQUIRED   =>
+        'Authorization required for this command',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHORIZATION_REJECTED   =>
+        'Authorization rejected',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHENTICATION_REQUIRED  =>
+        'Authentication required',
+    NET_NNTP_PROTOCOL_RESPONSECODE_AUTHENTICATION_REJECTED  =>
+        'Authentication rejected',
+    NET_NNTP_PROTOCOL_RESPONSECODE_ENCRYPTION_REQUIRED      =>
+        'Command unavailable until suitable privacy has been arranged',
+    NET_NNTP_PROTOCOL_RESPONSECODE_UNKNOWN_COMMAND          =>
+        'Command not recognized',
+    NET_NNTP_PROTOCOL_RESPONSECODE_SYNTAX_ERROR             =>
+        'Command syntax error',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NOT_PERMITTED            =>
+        'Access restriction or permission denied',
+    NET_NNTP_PROTOCOL_RESPONSECODE_NOT_SUPPORTED            =>
+        'Program fault - command not performed',
+    NET_NNTP_PROTOCOL_RESPONSECODE_BASE64_ENCODING_ERROR    =>
+        'Error in base64-encoding of an argument'
+);

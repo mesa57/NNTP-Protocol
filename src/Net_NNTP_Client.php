@@ -10,64 +10,19 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *
      * @var array
      */
-    private $_selectedGroupSummary = null;
+    private $selectedGroupSummary = null;
 
     /**
      * @var array
      */
-    private $_overviewFormatCache = null;
+    private $overviewFormatCache = null;
 
     /**
      * Disable xzver support for now, causes too many incompatibilities (spotweb/spotweb github issue #1133).
      *
      * @var array
      */
-    private $_supportXzver = false;
-
-    /**
-     * Connect to a server.
-     *
-     * @param null|string       $host       The hostname og IP-address of the NNTP-server to connect to, defaults to
-     *                                      localhost.
-     * @param null|false|string $encryption False|'tls'|'ssl', defaults to false.
-     * @param null|int          $port       The port number to connect to, defaults to 119 or 563 depending on
-     *                                      $encryption.
-     * @param null|int          $timeout
-     *
-     * @return bool True when posting allowed, otherwise false.
-     */
-    public function connect($host = null, $encryption = null, $port = null, $timeout = null)
-    {
-        // v1.0.x API
-        if (is_int($encryption)) {
-            trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: connect() !', E_USER_NOTICE);
-            $port       = $encryption;
-            $encryption = null;
-        }
-
-        return parent::connect($host, $encryption, $port, $timeout);
-    }
-
-    /**
-     * Disconnect from server.
-     *
-     * @return bool
-     */
-    public function disconnect()
-    {
-        return parent::disconnect();
-    }
-
-    /**
-     * Deprecated alias for disconnect().
-     *
-     * @return bool
-     * @deprecated Use disconnect instead.
-     */
-    public function quit()
-    {
-        return $this->disconnect();
-    }
+    private $supportXzver = false;
 
     /**
      * Authenticate. (Non-standard)
@@ -78,12 +33,13 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      * @param string $pass The password.
      *
      * @return bool True on successful authentication, otherwise false.
+     * @throws NNTPException
      */
     public function authenticate($user, $pass)
     {
         // Username is a must...
-        if ($user == null) {
-            $this->throwError('No username supplied', null);
+        if (empty($user) || !is_string($user)) {
+            throw new NNTPException('No username supplied');
         }
 
         return $this->cmdAuthinfo($user, $pass);
@@ -111,9 +67,10 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
         $summary = $this->cmdGroup($group);
 
         // Store group info in the object
-        $this->_selectedGroupSummary = $summary;
+        $this->selectedGroupSummary = $summary;
 
         if ($articles !== false) {
+            // @todo Check this code, above already checking for !== false (true?) === null? means always null...
             $summary2 = $this->cmdListgroup($group, ($articles === true ? null : $articles));
 
             // Make sure the summary array is correct...
@@ -132,15 +89,16 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      * Select the previous article.
      * Select the previous article in current group.
      *
-     * @param int $_ret Experimental
+     * @param int $ret Experimental
      *
-     * @return mixed
-     *  - (integer)    Article number, if $ret=0 (default)
-     *  - (string)    Message-id, if $ret=1
-     *  - (array)    Both article number and message-id, if $ret=-1
-     *  - (bool)    False if no previous article exists
+     * @return mixed - (integer)    Article number, if $ret=0 (default)
+     * - (integer)    Article number, if $ret=0 (default)
+     * - (string)    Message-id, if $ret=1
+     * - (array)    Both article number and message-id, if $ret=-1
+     * - (bool)    False if no previous article exists
+     * @throws NNTPException
      */
-    public function selectPreviousArticle($_ret = 0)
+    public function selectPreviousArticle($ret = 0)
     {
         try {
             $response = $this->cmdLast();
@@ -148,7 +106,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
             return false;
         }
 
-        switch ($_ret) {
+        switch ($ret) {
             case -1:
                 return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
                 break;
@@ -159,7 +117,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 return (string)$response[1];
                 break;
             default:
-                //error(); // ...
+                throw new NNTPException('', $response);
         }
     }
 
@@ -167,19 +125,20 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      * Select the next article.
      * Select the next article in current group.
      *
-     * @param int $_ret Experimental
+     * @param int $ret Experimental
      *
      * @return mixed <br>
      *  - (integer)    Article number, if $ret=0 (default)
      * - (string)    Message-id, if $ret=1
      * - (array)    Both article number and message-id, if $ret=-1
      * - (bool)    False if no further articles exist
+     * @throws NNTPException
      */
-    public function selectNextArticle($_ret = 0)
+    public function selectNextArticle($ret = 0)
     {
         $response = $this->cmdNext();
 
-        switch ($_ret) {
+        switch ($ret) {
             case -1:
                 return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
                 break;
@@ -190,7 +149,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 return (string)$response[1];
                 break;
             default:
-                //error(); // ...
+                throw new NNTPException('', $response);
         }
     }
 
@@ -199,17 +158,18 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *
      * @param mixed $article The message-number (on the server) of
      *                       the article to select as current article.
-     * @param int   $_ret    Experimental
+     * @param int   $ret     Experimental
      *
-     * @return mixed
+     * @return mixed - (integer) Article number
      * - (integer) Article number
      * - (bool)    False if article doesn't exists
+     * @throws NNTPException
      */
-    public function selectArticle($article = null, $_ret = 0)
+    public function selectArticle($article = null, $ret = 0)
     {
         $response = $this->cmdStat($article);
 
-        switch ($_ret) {
+        switch ($ret) {
             case -1:
                 return array('Number' => (int)$response[0], 'Message-ID' => (string)$response[1]);
                 break;
@@ -220,7 +180,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 return (string)$response[1];
                 break;
             default:
-                //error(); // ...
+                throw new NNTPException('', $response);
         }
     }
 
@@ -236,34 +196,23 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                                  is imploded to a string, defaults to
      *                                  false.
      *
-     * @return mixed
-     *  - (array)    Complete article (when $implode is false)
-     *  - (string)    Complete article (when $implode is true)
-     *  - (object)    Pear_Error on failure
+     * @return mixed - (array)    Complete article (when $implode is false)
+     * - (array)    Complete article (when $implode is false)
+     * - (string)    Complete article (when $implode is true)
+     * - (object)    Pear_Error on failure
+     * @throws NNTPException
      */
     public function getArticle($article = null, $implode = false)
     {
         // v1.1.x API
         if (is_string($implode)) {
-            trigger_error('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !', E_USER_NOTICE);
-
-            $class   = $implode;
-            $implode = false;
-
-            if (!class_exists($class)) {
-                $this->throwError("Class '$class' does not exist!");
-            }
+            throw new NNTPException('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !');
         }
 
         $data = $this->cmdArticle($article);
 
         if ($implode == true) {
             $data = implode("\r\n", $data);
-        }
-
-        // v1.1.x API
-        if (isset($class)) {
-            return $obj = new $class($data);
         }
 
         return $data;
@@ -280,34 +229,23 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                                  is imploded to a string, defaults to
      *                                  false.
      *
-     * @return mixed
-     *  - (bool)    False if article does not exist
-     *  - (array)    Header fields (when $implode is false)
-     *  - (string)    Header fields (when $implode is true)
+     * @return mixed - (bool)    False if article does not exist
+     * - (bool)    False if article does not exist
+     * - (array)    Header fields (when $implode is false)
+     * - (string)    Header fields (when $implode is true)
+     * @throws NNTPException
      */
     public function getHeader($article = null, $implode = false)
     {
         // v1.1.x API
         if (is_string($implode)) {
-            trigger_error('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !', E_USER_NOTICE);
-
-            $class   = $implode;
-            $implode = false;
-
-            if (!class_exists($class)) {
-                $this->throwError("Class '$class' does not exist!");
-            }
+            throw new NNTPException('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !');
         }
 
         $data = $this->cmdHead($article);
 
         if ($implode == true) {
             $data = implode("\r\n", $data);
-        }
-
-        // v1.1.x API
-        if (isset($class)) {
-            return $obj = new $class($data);
         }
 
         return $data;
@@ -325,33 +263,22 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                                  is imploded to a string, defaults to
      *                                  false.
      *
-     * @return mixed
-     *  - (array)    Message body (when $implode is false)
-     *  - (string)    Message body (when $implode is true)
+     * @return mixed - (array)    Message body (when $implode is false)
+     * - (array)    Message body (when $implode is false)
+     * - (string)    Message body (when $implode is true)
+     * @throws NNTPException
      */
     public function getBody($article = null, $implode = false)
     {
         // v1.1.x API
         if (is_string($implode)) {
-            trigger_error('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !', E_USER_NOTICE);
-
-            $class   = $implode;
-            $implode = false;
-
-            if (!class_exists($class)) {
-                $this->throwError("Class '$class' does not exist!");
-            }
+            throw new NNTPException('You are using deprecated API v1.1 in Net_NNTP_Client: getHeader() !');
         }
 
         $data = $this->cmdBody($article);
 
         if ($implode == true) {
             $data = implode("\r\n", $data);
-        }
-
-        // v1.1.x API
-        if (isset($class)) {
-            return $obj = new $class($data);
         }
 
         return $data;
@@ -367,29 +294,22 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                       replacement)
      *
      * @return string Server response.
+     * @throws NNTPException
      */
     public function post($article)
     {
         // API v1.0
         if (func_num_args() >= 4) {
-            trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: post() !', E_USER_NOTICE);
-
-            $groups     = func_get_arg(0);
-            $subject    = func_get_arg(1);
-            $body       = func_get_arg(2);
-            $from       = func_get_arg(3);
-            $additional = func_get_arg(4);
-
-            return $this->mail($groups, $subject, $body, "From: $from\r\n" . $additional);
+            throw new NNTPException('You are using deprecated API v1.0 in Net_NNTP_Client: post() !');
         }
 
         // Only accept $article if array or string
         if (!is_array($article) && !is_string($article)) {
-            $this->throwError('Ups', null, 0);
+            throw new NNTPException('$article is not a string or array');
         }
 
         // Check if server will receive an article
-        $post = $this->cmdPost();
+        $this->cmdPost();
 
         // Get article data from callback function
         if (is_callable($article)) {
@@ -420,7 +340,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
     public function mail($groups, $subject, $body, $additional = null)
     {
         // Check if server will receive an article
-        $post = $this->cmdPost();
+        $this->cmdPost();
 
         // Construct header
         $header = "Newsgroups: $groups\r\n";
@@ -446,6 +366,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                           - 2: return an array('y'=>year, 'm'=>month,'d'=>day)
      *
      * @return mixed
+     * @throws NNTPException
      */
     public function getDate($format = 1)
     {
@@ -456,8 +377,15 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 return $date;
                 break;
             case 1:
-                return strtotime(substr($date, 0, 8) . ' ' . substr($date, 8, 2) . ':' . substr($date, 10,
-                        2) . ':' . substr($date, 12, 2));
+                return strtotime(
+                    sprintf(
+                        '%s %s:%s:%s',
+                        substr($date, 0, 8),
+                        substr($date, 8, 2),
+                        substr($date, 10, 2),
+                        substr($date, 12, 2)
+                    )
+                );
                 break;
             case 2:
                 return array(
@@ -467,7 +395,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 );
                 break;
             default:
-                error();
+                throw new NNTPException('', $date);
         }
     }
 
@@ -482,6 +410,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      * @param string $distributions
      *
      * @return array
+     * @throws NNTPException
      */
     public function getNewGroups($time, $distributions = null)
     {
@@ -490,12 +419,12 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 break;
             case is_string($time):
                 $time = strtotime($time);
-                if ($time === false || ($time === -1 && version_compare(phpversion(), '5.1.0', '<'))) {
-                    $this->throwError('$time could not be converted into a timestamp!', null, 0);
+                if ($time === false || $time === -1) {
+                    throw new NNTPException('$time could not be converted into a timestamp!');
                 }
                 break;
             default:
-                trigger_error('$time must be either a string or an integer/timestamp!', E_USER_ERROR);
+                throw new NNTPException('$time must be either a string or an integer/timestamp!');
         }
 
         return $this->cmdNewgroups($time, $distributions);
@@ -510,9 +439,11 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                              - (integer)    A timestamp
      *                              - (string)    Somthing parseable by strtotime() like '-1 week'
      * @param string $groups
-     * @param string $distributions
+     * @param null   $distribution
      *
      * @return array
+     * @throws NNTPException
+     * @internal param string $distributions
      */
     public function getNewArticles($time, $groups = '*', $distribution = null)
     {
@@ -521,12 +452,12 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 break;
             case is_string($time):
                 $time = strtotime($time);
-                if ($time === false || ($time === -1 && version_compare(php_version(), '5.1.0', '<'))) {
-                    $this->throwError('$time could not be converted into a timestamp!', null, 0);
+                if ($time === false || $time === -1) {
+                    throw new NNTPException('$time could not be converted into a timestamp!');
                 }
                 break;
             default:
-                trigger_error('$time must be either a string or an integer/timestamp!', E_USER_ERROR);
+                throw new NNTPException('$time must be either a string or an integer/timestamp!');
         }
 
         return $this->cmdNewnews($time, $groups, $distribution);
@@ -549,7 +480,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
         // Get groups
         try {
             $groups = $this->cmdListActive($wildmat);
-        } catch (NntpException $x) {
+        } catch (NNTPException $x) {
             switch ($x->getCode()) {
                 case 500:
                 case 501:
@@ -560,15 +491,15 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
             }
         }
 
-        if ($backup == true) {
+        if ($backup === true) {
             if (!is_null($wildmat)) {
-                $this->throwError(
-                    "The server does not support the 'LIST ACTIVE' command, and the 'LIST' command does not support the wildmat parameter!",
-                    null,
-                    null
+                throw new NNTPException(
+                    'The server does not support the "LIST ACTIVE" command, '
+                    . 'and the "LIST" command does not support the wildmat parameter!'
                 );
             }
 
+            // @todo Should this be $groups?
             $groups2 = $this->cmdList();
         }
 
@@ -621,12 +552,14 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                             - '<message number>-<message number>'
      *                             - '<message number>-'
      *                             - '<message-id>'
-     * @param bool  $_names        Experimental parameter! Use field names as array keys.
+     * @param bool  $names         Experimental parameter! Use field names as array keys.
      * @param bool  $_forceNames   Experimental parameter!
      *
-     * @return array Nested array of article overview data.
+     * @return array|bool Nested array of article overview data.
+     * @throws Exception
+     * @throws NNTPException
      */
-    public function getOverview($range = null, $_names = true, $_forceNames = true)
+    public function getOverview($range = null, $names = true, $_forceNames = true)
     {
         // API v1.0
         switch (true) {
@@ -638,56 +571,39 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 break;
 
             default:
-                trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: getOverview() !', E_USER_NOTICE);
-
-                // Fetch overview via API v1.3
-                $overview = $this->getOverview(func_get_arg(0) . '-' . func_get_arg(1), true, false);
-
-                // Create and return API v1.0 compliant array
-                $articles = array();
-                foreach ($overview as $article) {
-
-                    // Rename 'Number' field into 'number'
-                    $article = array_merge(array('number' => array_shift($article)), $article);
-
-                    // Use 'Message-ID' field as key
-                    $articles[$article['Message-ID']] = $article;
-                }
-
-                return $articles;
+                throw new NNTPException('You are using deprecated API v1.0 in Net_NNTP_Client: getOverview() !');
         }
 
         // Does the server support XZVER
-        if (is_null($this->_supportXzver)) {
+        if (is_null($this->supportXzver)) {
             try {
-                $this->_supportXzver = (array_search('XZVER', $this->cmdCapabilities()) !== false);
+                $this->supportXzver = (array_search('XZVER', $this->cmdCapabilities()) !== false);
             } catch (Exception $x) {
-                $this->_supportXzver = false;
-            } # try
-        } # if
+                $this->supportXzver = false;
+            }
+        }
 
         // Fetch overview from server
-        if ($this->_supportXzver) {
+        if ($this->supportXzver) {
             try {
                 $overview = $this->cmdXZver($range);
             } catch (Exception $x) {
-                # If cmdXZver throws an fatal error, escalate it
-                if (!$this->_isConnected()) {
+                // If cmdXZver throws an fatal error, escalate it
+                if (!$this->isConnected()) {
                     throw $x;
-                } # if
+                }
 
-                $overview            = $this->cmdXOver($range);
-                $this->_supportXzver = false;
-            } # catch
+                $overview           = $this->cmdXOver($range);
+                $this->supportXzver = false;
+            }
         } else {
             $overview = $this->cmdXOver($range);
-        } # else
+        }
 
         // Use field names from overview format as keys?
-        if ($_names) {
-
+        if ($names) {
             // Already cached?
-            if (is_null($this->_overviewFormatCache)) {
+            if (is_null($this->overviewFormatCache)) {
                 // Fetch overview format
                 $format = $this->getOverviewFormat($_forceNames, true);
 
@@ -695,15 +611,14 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
                 $format = array_merge(array('Number' => false), $format);
 
                 // Cache format
-                $this->_overviewFormatCache = $format;
+                $this->overviewFormatCache = $format;
                 //
             } else {
-                $format = $this->_overviewFormatCache;
+                $format = $this->overviewFormatCache;
             }
 
             // Loop through all articles
             foreach ($overview as $key => $article) {
-
                 // Copy $format
                 $f = $format;
 
@@ -712,8 +627,6 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
                 // Loop through forld names in format
                 foreach ($f as $tag => $full) {
-
-                    //
                     $f[$tag] = $article[$i++];
 
                     // If prefixed by field name, remove it
@@ -727,12 +640,10 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
             }
         }
 
-        //
         switch (true) {
-
             // Expect one article
-            case is_null($range);
-            case is_int($range);
+            case is_null($range):
+            case is_int($range):
             case is_string($range) && $this->isDigit($range):
             case is_string($range) && substr($range, 0, 1) == '<' && substr($range, -1, 1) == '>':
                 if (count($overview) == 0) {
@@ -756,12 +667,12 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *
      * @return array Overview field names.
      */
-    public function getOverviewFormat($_forceNames = true, $_full = false)
+    public function getOverviewFormat($forceNames = true, $full = false)
     {
         $format = $this->cmdListOverviewFmt();
 
         // Force name of first seven fields
-        if ($_forceNames) {
+        if ($forceNames) {
             array_splice($format, 0, 7);
             $format = array_merge(array(
                 'Subject'    => false,
@@ -774,7 +685,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
             ), $format);
         }
 
-        if ($_full) {
+        if ($full) {
             return $format;
         } else {
             return array_keys($format);
@@ -795,7 +706,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                            '<message number>-'
      *                            '<message-id>'
      *
-     * @return array Nested array of.
+     * @return array|bool Nested array of.
      */
     public function getHeaderField($field, $range = null)
     {
@@ -803,11 +714,10 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
         switch (true) {
             // Expect one article
-            case is_null($range);
-            case is_int($range);
+            case is_null($range):
+            case is_int($range):
             case is_string($range) && $this->isDigit($range):
             case is_string($range) && substr($range, 0, 1) == '<' && substr($range, -1, 1) == '>':
-
                 if (count($fields) == 0) {
                     return false;
                 } else {
@@ -835,7 +745,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
         // Update summary cache if group was also 'selected'
         if ($summary['group'] !== null) {
-            $this->_selectedGroupSummary = $summary;
+            $this->selectedGroupSummary = $summary;
         }
 
         return $summary['articles'];
@@ -855,7 +765,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      *                            '<message number>-'
      *                            '<message-id>'
      *
-     * @return array Nested array of references.
+     * @return array|bool Nested array of references.
      * @throws Exception
      */
     public function getReferences($range = null)
@@ -864,7 +774,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
         try {
             $references = $this->cmdXHdr('References', $range);
-        } catch (NntpException $x) {
+        } catch (NNTPException $x) {
             switch ($x->getCode()) {
                 case 500:
                 case 501:
@@ -892,8 +802,8 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
 
         switch (true) {
             // Expect one article
-            case is_null($range);
-            case is_int($range);
+            case is_null($range):
+            case is_int($range):
             case is_string($range) && $this->isDigit($range):
             case is_string($range) && substr($range, 0, 1) == '<' && substr($range, -1, 1) == '>':
                 if (count($references) == 0) {
@@ -916,7 +826,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      */
     public function count()
     {
-        return $this->_selectedGroupSummary['count'];
+        return $this->selectedGroupSummary['count'];
     }
 
     /**
@@ -926,7 +836,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      */
     public function last()
     {
-        return $this->_selectedGroupSummary['last'];
+        return $this->selectedGroupSummary['last'];
     }
 
     /**
@@ -936,7 +846,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      */
     public function first()
     {
-        return $this->_selectedGroupSummary['first'];
+        return $this->selectedGroupSummary['first'];
     }
 
     /**
@@ -946,80 +856,7 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      */
     public function group()
     {
-        return $this->_selectedGroupSummary['group'];
-    }
-
-    /**
-     * Test whether a connection is currently open or closed.
-     *
-     * @return bool True if connected, otherwise false.
-     * @deprecated Due to use of protected method: Net_NNTP_Protocol_Client::isConnected().
-     */
-    public function isConnected()
-    {
-        trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: isConnected() !', E_USER_NOTICE);
-
-        return parent::_isConnected();
-    }
-
-    /**
-     * Deprecated alias for getArticle().
-     *
-     * @deprecated use getArticle instead.
-     */
-    public function getArticleRaw($article, $implode = false)
-    {
-        trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: getArticleRaw() !', E_USER_NOTICE);
-
-        return $this->getArticle($article, $implode);
-    }
-
-    /**
-     * Deprecated alias for getHeader().
-     *
-     * @deprecated use getHeader instead.
-     */
-    public function getHeaderRaw($article = null, $implode = false)
-    {
-        trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: getHeaderRaw() !', E_USER_NOTICE);
-
-        return $this->getHeader($article, $implode);
-    }
-
-    /**
-     * Deprecated alias for getBody()
-     *
-     * @deprecated use getBody instead.
-     */
-    public function getBodyRaw($article = null, $implode = false)
-    {
-        trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: getBodyRaw() !', E_USER_NOTICE);
-
-        return $this->getBody($article, $implode);
-    }
-
-    /**
-     * Deprecated alias for getNewArticles()
-     *
-     * @deprecated use getNewArticles instead.
-     */
-    public function getNewNews($time, $groups = '*', $distribution = null)
-    {
-        trigger_error('You are using deprecated API v1.1 in Net_NNTP_Client: getNewNews() !', E_USER_NOTICE);
-
-        return $this->getNewArticles($time, $groups, $distribution);
-    }
-
-    /**
-     * Deprecated alias for getReferences()
-     *
-     * @deprecated use getReferences instead.
-     */
-    public function getReferencesOverview($first, $last)
-    {
-        trigger_error('You are using deprecated API v1.0 in Net_NNTP_Client: getReferencesOverview() !', E_USER_NOTICE);
-
-        return $this->getReferences($first . '-' . $last);
+        return $this->selectedGroupSummary['group'];
     }
 
     /**
@@ -1029,12 +866,6 @@ class Net_NNTP_Client extends Net_NNTP_Protocol_Client
      */
     private function isDigit($s)
     {
-        for ($i = 0; $i < strlen($s); $i++) {
-            if (strpos('0123456789', $s[$i]) === false) {
-                return false;
-            }
-        }
-
-        return true;
+        return (preg_match('/^[0-9]*$/gm', $s) === 1);
     }
 }
