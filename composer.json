@@ -1,5 +1,5 @@
 {
-  "name": "gdwebs/nntp",
+  "name": "spotweb/nntp",
   "description": "A package that adds support for the NNTP protocol in PHP.",
   "type": "library",
   "license": "MIT",
